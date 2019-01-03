@@ -23,3 +23,20 @@ _Through GitHub and Slack integrations, this application sends regular Slack com
 
 * In order to allow for messages to be posted to slack from an external source, you will need to configure your app to accept incoming webhooks. You can find instructions for setting up an incoming webhook [here](https://api.slack.com/incoming-webhooks).
 * Copy and paste your app's Webhook URL into a .env file per `envexample` file included in this repo.
+
+## GitHub Setup
+
+# SETUP/INSTALLATION INSTRUCTIONS CURRENTLY UNDER CONSTRUCTION
+
+## Support and contact details
+
+_Please feel free to reach out to me at mlamb128@gmail.com_
+
+## Technologies Used
+
+_Node.js with Express, as well as Botkit and Octokit._
+
+### License
+
+*MIT*
+Copyright (c) 2018 **_Michael B Lambert_**

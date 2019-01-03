@@ -8,7 +8,7 @@ controller.hears(
     controller.storage.users.get(message.user, () => {
       bot.startConversation(message, (err, convo) => {
         let user = {};
-        if (!err) {
+        if(!err) {
           convo.ask(BOT_RESPONSES.EDIT_NAME, (res, convo) => {
             user = {
               id: message.user,
