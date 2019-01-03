@@ -3,5 +3,4 @@ node_js: "10"
 services:
   - mongodb
 env:
-  - MONGODB_URI=mongodb://localhost:7890/crypto
-  
+  - MONGODB_URI=mongodb://localhost:27017/commitbot
