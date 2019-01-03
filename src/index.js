@@ -7,7 +7,7 @@ require('./controller/registration');
 require('./controller/edit');
 
 app.use(express.json());
-app.use('/fork', fork);
+app.use('/', fork);
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
