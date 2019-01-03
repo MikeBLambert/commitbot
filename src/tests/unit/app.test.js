@@ -1,6 +1,5 @@
-require('dotenv').config();
-const app = require('../../routes/app');
-const request = require('supertest');
+import app from '../../routes/app';
+import request from 'supertest';
 
 describe('app', () => {
   it('sends authorization to slack', () => {
@@ -28,7 +27,9 @@ describe('app', () => {
       .post('/commit')
       .send(message)
       .then(res => {
-        expect(res.text).toEqual('Hi there! :wave: I\'m a special bot designed to help you get over your fear of commitment. Committing on GitHub is super important. Let\'s get started! What is your GitHub username?');
+        expect(res.text).toEqual(
+          "Hi there! :wave: I'm a special bot designed to help you get over your fear of commitment. Committing on GitHub is super important. Let's get started! What is your GitHub username?"
+        );
       });
   });
 });
