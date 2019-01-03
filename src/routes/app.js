@@ -3,14 +3,22 @@ const router = require('express').Router();
 const octokit = require('@octokit/rest')();
 const Slack = require('slack-node');
 const slack = new Slack();
-
 slack.setWebhook(process.env.SLACK_WEBHOOK_URL);
 
-const payload = {
-  channel: '#general',
-  username: 'webhookbot',
-  text: 'This is posted to #general and comes from a bot named webhookbot.',
-  icon_emoji: ':ghost:'
+const Botkit = require('botkit');
+const mongoStorage = require('botkit-storage-mongo')({
+  mongoUri: process.env.MONGO_URI
+});
+const controller = Botkit.slackbot({
+  debug: false,
+  storage: mongoStorage
+});
+
+let message = {
+  channel: '',
+  username: 'CommitBot',
+  text: 'Looks like you still need to commit.',
+  icon_emoji: ':octopus:'
 };
 
 const listForkActivity = (forkee, forkedRepo) => () => {
@@ -19,12 +27,21 @@ const listForkActivity = (forkee, forkedRepo) => () => {
       owner: forkee,
       repo: forkedRepo
     })
-    .then(({ data, headers, status }) => {
+    .then(({ data }) => {
       const commits = data.filter(e => e.payload.commits.length > 0);
-      if (commits.length === 0) {
-        slack.webhook(payload, (err, res) => {});
+      const hasCommitted = commits.length > 0;
+
+      if (!hasCommitted) {
+        controller.storage.users.find(
+          { gitHubName: forkee },
+          (error, users) => {
+            message.channel = users[0].id;
+          }
+        );
+
+        slack.webhook(message, (err, res) => {});
         setTimeout(listForkActivity(forkee, forkedRepo), 5000);
-      } else if (commits.length > 0) {
+      } else if (hasCommitted) {
         return;
       }
     });
@@ -33,8 +50,8 @@ const listForkActivity = (forkee, forkedRepo) => () => {
 const gitHubAuthentication = () => {
   octokit.authenticate({
     type: 'oauth',
-    key: process.env.GITHUB_AUTH_KEY,
-    secret: process.env.GITHUB_AUTH_SECRET
+    key: process.env.GITHUB_CLIENT_ID,
+    secret: process.env.GITHUB_CLIENT_SECRET
   });
 };
 
