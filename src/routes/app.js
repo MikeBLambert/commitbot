@@ -5,8 +5,8 @@ const controller = require('../controller/spawnController');
 const Slack = require('slack-node');
 const slack = new Slack();
 slack.setWebhook(process.env.SLACK_WEBHOOK_URL);
-let message = require('../fixtures/reminderMessage');
 
+const reminderMessage = require('../fixtures/reminderMessage');
 
 module.exports = router.post('/', async(req, res, next) => {
   const forkee = req.body.forkee.owner.login;
@@ -30,13 +30,13 @@ const commitReminder = (forkee, forkedRepo) => () => {
         controller.storage.users.find(
           { gitHubName: forkee },
           (error, users) => {
-            message.channel = users[0].id;
+            const message = reminderMessage(users[0].id, forkedRepo);
+            slack.webhook(message, (err, response) => {});
           }
         );
+        setTimeout(commitReminder(forkee, forkedRepo), 900000);
 
-        slack.webhook(message, (err, res) => {});
-        setTimeout(commitReminder(forkee, forkedRepo), 5000);
-      } else if(hasCommitted) {
+      } else {
         return;
       }
     });
