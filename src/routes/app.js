@@ -1,27 +1,22 @@
 require('dotenv').config();
 const router = require('express').Router();
 const octokit = require('@octokit/rest')();
+const controller = require('../controller/spawnController');
 const Slack = require('slack-node');
 const slack = new Slack();
 slack.setWebhook(process.env.SLACK_WEBHOOK_URL);
+let message = require('../fixtures/reminderMessage');
 
-const Botkit = require('botkit');
-const mongoStorage = require('botkit-storage-mongo')({
-  mongoUri: process.env.MONGO_URI
+
+module.exports = router.post('/', async(req, res, next) => {
+  const forkee = req.body.forkee.owner.login;
+  const forkedRepo = req.body.repository.name;
+
+  await gitHubAuthentication();
+  await commitReminder(forkee, forkedRepo)();
 });
-const controller = Botkit.slackbot({
-  debug: false,
-  storage: mongoStorage
-});
 
-let message = {
-  channel: '',
-  username: 'CommitBot',
-  text: 'Looks like you still need to commit.',
-  icon_emoji: ':octopus:'
-};
-
-const listForkActivity = (forkee, forkedRepo) => () => {
+const commitReminder = (forkee, forkedRepo) => () => {
   octokit.activity
     .listRepoEvents({
       owner: forkee,
@@ -31,7 +26,7 @@ const listForkActivity = (forkee, forkedRepo) => () => {
       const commits = data.filter(e => e.payload.commits.length > 0);
       const hasCommitted = commits.length > 0;
 
-      if (!hasCommitted) {
+      if(!hasCommitted) {
         controller.storage.users.find(
           { gitHubName: forkee },
           (error, users) => {
@@ -40,8 +35,8 @@ const listForkActivity = (forkee, forkedRepo) => () => {
         );
 
         slack.webhook(message, (err, res) => {});
-        setTimeout(listForkActivity(forkee, forkedRepo), 5000);
-      } else if (hasCommitted) {
+        setTimeout(commitReminder(forkee, forkedRepo), 5000);
+      } else if(hasCommitted) {
         return;
       }
     });
@@ -54,11 +49,3 @@ const gitHubAuthentication = () => {
     secret: process.env.GITHUB_CLIENT_SECRET
   });
 };
-
-module.exports = router.post('/', async (req, res, next) => {
-  const forkee = req.body.forkee.owner.login;
-  const forkedRepo = req.body.repository.name;
-
-  await gitHubAuthentication();
-  await listForkActivity(forkee, forkedRepo)();
-});
