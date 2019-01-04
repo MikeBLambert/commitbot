@@ -34,7 +34,7 @@ const commitReminder = (forkee, forkedRepo) => () => {
             slack.webhook(message, (err, response) => {});
           }
         );
-        setTimeout(commitReminder(forkee, forkedRepo), 900000);
+        setTimeout(commitReminder(forkee, forkedRepo), 1800000);
 
       } else {
         return;
